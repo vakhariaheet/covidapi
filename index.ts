@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import stateCodeMap from './stateCodeMap.json';
-import moment, { isDate } from 'moment';
+import moment from 'moment';
+import { isDate } from './utils/Validation';
 import refreshData from './utils/refreshData';
 import mysql from 'mysql2';
 import * as dotenv from 'dotenv';
@@ -10,11 +11,12 @@ dotenv.config({ path: './.env' });
 const app = express();
 app.use(cors());
 const pool = mysql.createPool({
-	host: process.env.DB_HOST,
-	database: process.env.DB_NAME,
-	user: process.env.DB_USER,
-	password: process.env.DB_PASSWORD,
-	port: Number(process.env.DB_PORT),
+	host: process.env.MYSQL_ADDON_HOST,
+	database: process.env.MYSQL_ADDON_DB,
+	user: process.env.MYSQL_ADDON_USER,
+	password: process.env.MYSQL_ADDON_PASSWORD,
+	port: Number(process.env.MYSQL_ADDON_PORT),
+	uri: process.env.MYSQL_ADDON_URI,
 });
 const db = pool.promise();
 (async () => {
@@ -31,14 +33,16 @@ app.get('/', async (req, res) => {
 });
 // Get all states data
 app.get('/states', async (req, res) => {
-	let { minDate, maxDate } = req.query;
+	let { min_date: minDate, max_date: maxDate } = req.query;
 	if (!minDate) {
-		minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
+		minDate = moment().subtract(1, 'days').format('YYYY-MM-DD') as string;
 	}
 	if (!maxDate) {
-		maxDate = moment().format('YYYY-MM-DD');
+		maxDate = moment().format('YYYY-MM-DD') as string;
 	}
-
+	if (!(isDate(minDate as string) && isDate(maxDate as string))) {
+		return res.json({ error: 'Invalid Date' });
+	}
 	const data = await db.query(
 		`SELECT * FROM state_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
 	);
@@ -46,12 +50,15 @@ app.get('/states', async (req, res) => {
 });
 // Get Data for a specific state by state code
 app.get('/states/code/:state_code', async (req, res) => {
-	let { minDate, maxDate } = req.query;
+	let { min_date: minDate, max_date: maxDate } = req.query;
 	if (!minDate) {
 		minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
 	}
 	if (!maxDate) {
 		maxDate = moment().format('YYYY-MM-DD');
+	}
+	if (!(isDate(minDate as string) && isDate(maxDate as string))) {
+		return res.json({ error: 'Invalid Date' });
 	}
 	const stateCode = Number(req.params.state_code);
 	if (stateCode === NaN || stateCode < 1 || stateCode > 36) {
@@ -70,11 +77,9 @@ app.get('/states/code/:state_code', async (req, res) => {
 });
 // Get Data for a specific state by state abbr
 app.get('/states/abbr/:state_abbr', async (req, res) => {
-	let { minDate, maxDate } = req.query;
+	let { min_date: minDate, max_date: maxDate } = req.query;
 	const stateAbbr: string = req.params.state_abbr;
-	if (!(isDate(minDate) && isDate(maxDate))) {
-		res.json({ error: 'Invalid Date' });
-	}
+
 	if (!stateAbbr) {
 		res.json({ error: 'State Abbr Undefined' });
 	}
@@ -84,7 +89,9 @@ app.get('/states/abbr/:state_abbr', async (req, res) => {
 	if (!maxDate) {
 		maxDate = moment().format('YYYY-MM-DD');
 	}
-
+	if (!(isDate(minDate as string) && isDate(maxDate as string))) {
+		return res.json({ error: 'Invalid Date' });
+	}
 	const data = await db.query(
 		`SELECT * FROM state_cases WHERE state_abbr LIKE '%${stateAbbr}%' AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
 	);
@@ -92,10 +99,8 @@ app.get('/states/abbr/:state_abbr', async (req, res) => {
 });
 // Get Data for whole country
 app.get('/country', async (req, res) => {
-	let { minDate, maxDate } = req.query;
-	if (!(isDate(minDate) && isDate(maxDate))) {
-		res.json({ error: 'Invalid Date' });
-	}
+	let { min_date: minDate, max_date: maxDate } = req.query;
+
 	if (!minDate) {
 		minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
 	}
@@ -103,8 +108,11 @@ app.get('/country', async (req, res) => {
 		maxDate = moment().format('YYYY-MM-DD');
 	}
 
+	if (!(isDate(minDate as string) && isDate(maxDate as string))) {
+		return res.json({ error: 'Invalid Date' });
+	}
 	const data = await db.query(
-		`SELECT * FROM country_cases AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
+		`SELECT * FROM country_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
 	);
 	res.send(data[0]);
 });
