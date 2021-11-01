@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import stateCodeMap from './stateCodeMap.json';
 import moment from 'moment';
 import { isDate } from './utils/Validation';
 import refreshData from './utils/refreshData';
