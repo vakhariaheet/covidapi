@@ -7,11 +7,15 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"dev": "nodemon index.ts",
 		"postinstall": "tsc",
-		"start": "tsc && cross-env NODE_ENV=production node dist/index.js"
+		"start": "cross-env NODE_ENV=production node dist/index.js"
 	},
 	"author": "vakharia_heet",
 	"license": "MIT",
 	"dependencies": {
+		"@types/cors": "^2.8.12",
+		"@types/express": "^4.17.13",
+		"@types/jsdom": "^16.2.13",
+		"@types/swagger-ui-express": "^4.1.3",
 		"axios": "^0.24.0",
 		"cors": "^2.8.5",
 		"dotenv": "^10.0.0",
@@ -23,13 +27,11 @@
 		"node-cache": "^5.1.2",
 		"swagger-ui-express": "^4.3.0",
 		"ts-node": "^10.4.0",
-		"typescript": "^4.4.4"
+		"typescript": "^4.4.4",
+		"@types/node": "^17.0.29",
 	},
 	"devDependencies": {
-		"@types/cors": "^2.8.12",
-		"@types/express": "^4.17.13",
-		"@types/jsdom": "^16.2.13",
-		"@types/swagger-ui-express": "^4.1.3",
+	
 		"cross-env": "^7.0.3",
 		"nodemon": "^2.0.14"
 	}

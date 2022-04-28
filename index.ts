@@ -9,6 +9,8 @@ import NodeCache from 'node-cache';
 import StateCodeMap from './stateCodeMap';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDefinition from './swagger.json';
+import { Request , Response } from 'express-serve-static-core';
+import QueryString from 'qs';
 dotenv.config({ path: './.env' });
 
 const app = express();
@@ -61,7 +63,7 @@ setInterval(async () => {
 }, day);
 
 // All States
-app.get('/states', async (req, res) => {
+app.get('/states', async (req:Request<{}, any, any, QueryString.ParsedQs, Record<string, any>>, res:Response<any, Record<string, any>, number>) => {
 	if (cache.has('states')) {
 		return res.status(200).send(cache.get('states'));
 	}
@@ -83,7 +85,9 @@ app.get('/states', async (req, res) => {
 });
 
 // Get Data for a specific state by state code
-app.get('/states/code/:state_code', async (req, res) => {
+app.get('/states/code/:state_code', async (req: Request<{
+	state_code: string;
+}, any, any, QueryString.ParsedQs, Record<string, any>>, res:Response<any, Record<string, any>, number>) => {
 	let { min_date: minDate, max_date: maxDate } = req.query;
 	const stateCode = Number(req.params.state_code);
 
@@ -102,7 +106,7 @@ app.get('/states/code/:state_code', async (req, res) => {
 			.json({ error: 'Invalid State Code', state_code: stateCode });
 	}
 	const stateAbbr = (
-		Object.values(StateCodeMap).find((v) => v[1] === stateCode) as any
+		Object.values(StateCodeMap).find((v:[string | string[], number]) => v[1] === stateCode) as any
 	)[0];
 	if (cache.has(`state_${stateAbbr}`)) {
 		return res.status(200).send(cache.get(`state_${stateAbbr}`));
@@ -119,7 +123,9 @@ app.get('/states/code/:state_code', async (req, res) => {
 });
 
 // Get Data for a specific state by state abbr
-app.get('/states/abbr/:state_abbr', async (req, res) => {
+app.get('/states/abbr/:state_abbr', async (req: Request<{
+	state_abbr: string;
+}, any, any, QueryString.ParsedQs, Record<string, any>>, res:Response<any, Record<string, any>, number>) => {
 	let { min_date: minDate, max_date: maxDate } = req.query;
 	const stateAbbr: string = req.params.state_abbr;
 	if (!stateAbbr) {
@@ -146,7 +152,7 @@ app.get('/states/abbr/:state_abbr', async (req, res) => {
 });
 
 // Get Data for whole country
-app.get('/country', async (req, res) => {
+app.get('/country', async (req:Request<{}, any, any, QueryString.ParsedQs, Record<string, any>>, res:Response<any, Record<string, any>, number>) => {
 	let { min_date: minDate, max_date: maxDate } = req.query;
 
 	if (!minDate) {
