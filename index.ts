@@ -173,7 +173,7 @@ app.get(
 		if (!maxDate) {
 			maxDate = moment().format('YYYY-MM-DD');
 		}
-		if (cache.has(`state_${stateAbbr}`)) {
+		if (cache.has(`state_${stateAbbr}-${minDate}-${maxDate}`)) {
 			console.log('Cache Hit');
 			return res.status(200).send(cache.get(`state_${stateAbbr}`));
 		}
@@ -183,7 +183,7 @@ app.get(
 		const [data] = await db.query(
 			`SELECT * FROM state_cases WHERE state_abbr LIKE '%${stateAbbr}%' AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
 		);
-		cache.set(`state_${stateAbbr}`, data, day);
+		cache.set(`state_${stateAbbr}-${minDate}-${maxDate}`, data, day);
 		res.status(200).send(data);
 	},
 );
