@@ -106,7 +106,7 @@
 				}
 			}
 		},
-		"/states/code/{state_abbr}": {
+		"/states/abbr/{state_abbr}": {
 			"get": {
 				"summary": "Get Indian state data by state abbreviation",
 				"description": "Get Indian state data by state abbreviation",
