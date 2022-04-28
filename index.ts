@@ -71,9 +71,6 @@ app.get(
 		req: Request<{}, any, any, QueryString.ParsedQs, Record<string, any>>,
 		res: Response<any, Record<string, any>, number>,
 	) => {
-		if (cache.has('states')) {
-			return res.status(200).send(cache.get('states'));
-		}
 		let { min_date: minDate, max_date: maxDate } = req.query;
 		if (!minDate) {
 			minDate = moment().subtract(1, 'days').format('YYYY-MM-DD') as string;
@@ -84,10 +81,13 @@ app.get(
 		if (!(isDate(minDate as string) && isDate(maxDate as string))) {
 			return res.status(400).json({ error: 'Invalid Date' });
 		}
+		if (cache.has(`states-${minDate}-${maxDate}`)) {
+			return res.status(200).send(cache.get('states'));
+		}
 		const data = await db.query(
 			`SELECT * FROM state_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
 		);
-		cache.set('states', data[0], day);
+		cache.set(`states-${minDate}-${maxDate}`, data[0], day);
 		res.status(200).send(data[0] as any);
 	},
 );
@@ -131,14 +131,15 @@ app.get(
 			return res.status(400).json({ error: 'Invalid State Code' });
 		}
 		const stateAbbr = stateAbbrCheck[0] as string;
-		if (cache.has(`state_${stateAbbr}`)) {
+		if (cache.has(`state_${stateAbbr}-${minDate}-${maxDate}`)) {
 			return res.status(200).send(cache.get(`state_${stateAbbr}`));
 		}
 		try {
 			const [data] = await db.query(
 				`SELECT * FROM state_cases WHERE state_code=${stateCode} AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
 			);
-			cache.set(`state_${stateAbbr}`, data, day);
+			console.log(minDate, maxDate);
+			cache.set(`state_${stateAbbr}-${minDate}-${maxDate}`, data, day);
 			return res.status(200).send(data);
 		} catch (err) {
 			return res.status(400).send({ error: 'Invalid State Code' });
@@ -202,7 +203,7 @@ app.get(
 		if (!maxDate) {
 			maxDate = moment().format('YYYY-MM-DD');
 		}
-		if (cache.has('country')) {
+		if (cache.has(`country-${minDate}-${maxDate}`)) {
 			return res.status(200).send(cache.get('country'));
 		}
 		if (!(isDate(minDate as string) && isDate(maxDate as string))) {
@@ -211,7 +212,7 @@ app.get(
 		const [data] = await db.query(
 			`SELECT * FROM country_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
 		);
-		cache.set('country', data, day);
+		cache.set(`country-${minDate}-${maxDate}`, data, day);
 		res.status(200).send(data);
 	},
 );
