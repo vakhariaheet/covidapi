@@ -13,7 +13,7 @@
 		}
 	},
 	"schemes": ["https"],
-	"host": "covidindiapublicapi.herokuapp.com/",
+	"host": "covidindiapublicapi.herokuapp.com",
 	"basePath": "/",
 	"paths": {
 		"/states": {

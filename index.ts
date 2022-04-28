@@ -138,8 +138,8 @@ app.get(
 			const [data] = await db.query(
 				`SELECT * FROM state_cases WHERE state_code=${stateCode} AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
 			);
-			cache.set(`state_${stateAbbr}`, [(data as any)[1]], day);
-			return res.status(200).send([(data as any)[1]]);
+			cache.set(`state_${stateAbbr}`, data, day);
+			return res.status(200).send(data);
 		} catch (err) {
 			return res.status(400).send({ error: 'Invalid State Code' });
 		}
@@ -182,8 +182,8 @@ app.get(
 		const [data] = await db.query(
 			`SELECT * FROM state_cases WHERE state_abbr LIKE '%${stateAbbr}%' AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
 		);
-		cache.set(`state_${stateAbbr}`, [(data as any)[1]], day);
-		res.status(200).send([(data as any)[1]]);
+		cache.set(`state_${stateAbbr}`, data, day);
+		res.status(200).send(data);
 	},
 );
 
@@ -211,8 +211,8 @@ app.get(
 		const [data] = await db.query(
 			`SELECT * FROM country_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
 		);
-		cache.set('country', [(data as any)[0]], day);
-		res.status(200).send([(data as any)[0]]);
+		cache.set('country', data, day);
+		res.status(200).send(data);
 	},
 );
 
