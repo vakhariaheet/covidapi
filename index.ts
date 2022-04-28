@@ -124,11 +124,13 @@ app.get(
 				.status(400)
 				.json({ error: 'Invalid State Code', state_code: stateCode });
 		}
-		const stateAbbr = (
-			Object.values(StateCodeMap).find(
-				(v: [string | string[], number]) => v[1] === stateCode,
-			) as any
-		)[0];
+		const stateAbbrCheck = Object.values(StateCodeMap).find(
+			(v: [string | string[], number]) => v[1] === stateCode,
+		) as any;
+		if (!stateAbbrCheck) {
+			return res.status(400).json({ error: 'Invalid State Code' });
+		}
+		const stateAbbr = stateAbbrCheck[0] as string;
 		if (cache.has(`state_${stateAbbr}`)) {
 			return res.status(200).send(cache.get(`state_${stateAbbr}`));
 		}
