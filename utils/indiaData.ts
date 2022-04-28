@@ -1,5 +1,6 @@
 import { Pool } from 'mysql2/promise';
 import moment from 'moment';
+import NodeCache from 'node-cache';
 const covidData = (className: string, document: Document): any => {
 	let eles = Array(...(document.querySelectorAll(`${className}`) as any))
 		.map((ele) => {
@@ -24,7 +25,7 @@ const covidData = (className: string, document: Document): any => {
 	return newData;
 };
 
-export default async (document: Document, db: Pool) => {
+export default async (document: Document, db: Pool, cache: NodeCache) => {
 	// Check if the data is already updated today
 	const date = moment().format('YYYY-MM-DD');
 	const [rows] = await db.execute(
@@ -35,10 +36,10 @@ export default async (document: Document, db: Pool) => {
 		console.log('Country Data already updated today');
 		return;
 	}
-
-	const deaths = covidData('.bg-red .mob-hide', document);
-	const active = covidData('.bg-blue .mob-hide', document);
-	const recovered = covidData('.bg-green .mob-hide', document);
+	cache.flushAll();
+	const deaths = covidData('.bg-red .mob-hide:nth-child(2)', document);
+	const active = covidData('.bg-blue .mob-hide:nth-child(2)', document);
+	const recovered = covidData('.bg-green .mob-hide:nth-child(2)', document);
 	const vaccinated = covidData('.fullbol span', document);
 	console.log('DATA Scarped From Ministry of Health,GOI');
 	const indiaCases = {

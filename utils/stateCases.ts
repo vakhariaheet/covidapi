@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { Pool } from 'mysql2/promise';
-import StateCodeMap from '../stateCodeMap.json';
+import StateCodeMap from '../stateCodeMap';
 import moment from 'moment';
+import NodeCache from 'node-cache';
 interface IState {
 	sno: string;
 	state_name: string;
@@ -16,7 +17,7 @@ interface IState {
 	state_code: string;
 }
 
-export default async (db: Pool) => {
+export default async (db: Pool, cache: NodeCache) => {
 	// Checking if data is already updated today
 	const [data] = await db.query(
 		`SELECT * FROM state_cases WHERE date="${moment().format('YYYY-MM-DD')}"`,
@@ -25,6 +26,7 @@ export default async (db: Pool) => {
 		console.log('State Data already updated today');
 		return;
 	}
+	cache.flushAll();
 	// Fetching Data from GOVERNMENT API
 	let { data: stateData } = await axios(
 		'https://www.mohfw.gov.in/data/datanew.json',
@@ -39,9 +41,9 @@ export default async (db: Pool) => {
 		};
 		let stateAbbr: string | string[] | undefined = (
 			StateCodeMap as {
-				[key: string]: string | string[];
+				[key: string]: [string | string[], number];
 			}
-		)[stateInfo.state_name];
+		)[stateInfo.state_name][0];
 		if (typeof stateAbbr === 'undefined') {
 			stateAbbr = 'NA';
 		} else {

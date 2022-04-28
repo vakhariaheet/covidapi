@@ -1,0 +1,291 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"description": "This is public API for the Covid 19 data of India ",
+		"version": "1.0.0",
+		"title": "Covid India API",
+		"contact": {
+			"email": "heetkv@gmail.com"
+		},
+		"license": {
+			"name": "MIT",
+			"url": "https://choosealicense.com/licenses/mit/"
+		}
+	},
+	"schemes": ["https"],
+	"host": "covidindiapublicapi.herokuapp.com/",
+	"basePath": "/",
+	"paths": {
+		"/states": {
+			"get": {
+				"summary": "Get all Indian states Data",
+				"description": "Get all the tasks",
+				"produces": ["application/json"],
+				"tags": ["states"],
+				"parameters": [
+					{
+						"name": "max_date",
+						"in": "query",
+						"description": "Max Date for the state data to be fetched(yyyy-mm-dd)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "min_date",
+						"in": "query",
+						"description": "Min Date for the state data to be fetched(yyyy-mm-dd)",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/StateResponse"
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid status value",
+						"schema": {
+							"$ref": "#/definitions/InvalidResponse"
+						}
+					}
+				}
+			}
+		},
+		"/states/code/{state_code}": {
+			"get": {
+				"summary": "Get Indian state data by state code",
+				"description": "Get Indian state data by state code",
+				"produces": ["application/json"],
+				"consumes": ["application/json"],
+				"tags": ["states"],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "state_code",
+						"description": "State Code",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "max_date",
+						"in": "query",
+						"description": "Max Date for the state data to be fetched(yyyy-mm-dd)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "min_date",
+						"in": "query",
+						"description": "Min Date for the state data to be fetched(yyyy-mm-dd)",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/StateResponse"
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid State Code or Date value",
+						"schema": {
+							"$ref": "#/definitions/InvalidResponse"
+						}
+					}
+				}
+			}
+		},
+		"/states/code/{state_abbr}": {
+			"get": {
+				"summary": "Get Indian state data by state abbreviation",
+				"description": "Get Indian state data by state abbreviation",
+				"produces": ["application/json"],
+				"consumes": ["application/json"],
+				"tags": ["states"],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "state_abbr",
+						"description": "State Abbreviation",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "max_date",
+						"in": "query",
+						"description": "Max Date for the state data to be fetched(yyyy-mm-dd)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "min_date",
+						"in": "query",
+						"description": "Min Date for the state data to be fetched(yyyy-mm-dd)",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/StateResponse"
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid State Code or Date value",
+						"schema": {
+							"$ref": "#/definitions/InvalidResponse"
+						}
+					}
+				}
+			}
+		},
+		"/country": {
+			"get": {
+				"summary": "Get India's Covid Data",
+				"description": "Get India's Covid Data",
+				"produces": ["application/json"],
+				"consumes": ["application/json"],
+				"tags": ["country"],
+				"parameters": [
+					{
+						"name": "max_date",
+						"in": "query",
+						"description": "Max Date for the state data to be fetched(yyyy-mm-dd)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "min_date",
+						"in": "query",
+						"description": "Min Date for the state data to be fetched(yyyy-mm-dd)",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/CountryResponse"
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid status value",
+						"schema": {
+							"$ref": "#/definitions/InvalidResponse"
+						}
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"StateResponse": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer"
+				},
+				"active_today": {
+					"type": "integer"
+				},
+				"death_today": {
+					"type": "integer"
+				},
+				"recovered_today": {
+					"type": "integer"
+				},
+				"active": {
+					"type": "integer"
+				},
+				"death": {
+					"type": "integer"
+				},
+				"recovered": {
+					"type": "integer"
+				},
+				"positive": {
+					"type": "integer"
+				},
+				"positive_today": {
+					"type": "integer"
+				},
+				"state_name": {
+					"type": "string"
+				},
+				"state_code": {
+					"type": "string"
+				},
+				"state_abbr": {
+					"type": "string"
+				},
+				"date": {
+					"type": "string"
+				}
+			}
+		},
+		"CountryResponse": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer"
+				},
+				"active_today": {
+					"type": "integer"
+				},
+				"death_today": {
+					"type": "integer"
+				},
+				"recovered_today": {
+					"type": "integer"
+				},
+				"vaccinated": {
+					"type": "integer"
+				},
+				"vaccinated_today": {
+					"type": "integer"
+				},
+				"active": {
+					"type": "integer"
+				},
+				"death": {
+					"type": "integer"
+				},
+				"recovered": {
+					"type": "integer"
+				},
+
+				"date": {
+					"type": "string"
+				}
+			}
+		},
+		"InvalidResponse": {
+			"type": "object",
+			"properties": {
+				"error": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
