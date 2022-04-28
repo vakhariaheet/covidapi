@@ -9,7 +9,7 @@ import NodeCache from 'node-cache';
 import StateCodeMap from './stateCodeMap';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDefinition from './swagger.json';
-import { Request , Response } from 'express-serve-static-core';
+import { Request, Response } from 'express-serve-static-core';
 import QueryString from 'qs';
 dotenv.config({ path: './.env' });
 
@@ -33,7 +33,7 @@ const swaggerDocument = {
 };
 app.use(cors());
 app.use(
-	'/',
+	'/docs',
 	swaggerUi.serve,
 	swaggerUi.setup(swaggerDefinition, {
 		swaggerOptions: swaggerDocument,
@@ -61,118 +61,158 @@ setInterval(async () => {
 	console.log('Refreshing');
 	await refreshData(db, cache);
 }, day);
-
-// All States
-app.get('/states', async (req:Request<{}, any, any, QueryString.ParsedQs, Record<string, any>>, res:Response<any, Record<string, any>, number>) => {
-	if (cache.has('states')) {
-		return res.status(200).send(cache.get('states'));
-	}
-	let { min_date: minDate, max_date: maxDate } = req.query;
-	if (!minDate) {
-		minDate = moment().subtract(1, 'days').format('YYYY-MM-DD') as string;
-	}
-	if (!maxDate) {
-		maxDate = moment().format('YYYY-MM-DD') as string;
-	}
-	if (!(isDate(minDate as string) && isDate(maxDate as string))) {
-		return res.status(400).json({ error: 'Invalid Date' });
-	}
-	const data = await db.query(
-		`SELECT * FROM state_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
-	);
-	cache.set('states', data[0], day);
-	res.status(200).send(data[0] as any);
+app.get('/', (req: Request, res: Response) => {
+	res.redirect('/docs');
 });
+// All States
+app.get(
+	'/states',
+	async (
+		req: Request<{}, any, any, QueryString.ParsedQs, Record<string, any>>,
+		res: Response<any, Record<string, any>, number>,
+	) => {
+		if (cache.has('states')) {
+			return res.status(200).send(cache.get('states'));
+		}
+		let { min_date: minDate, max_date: maxDate } = req.query;
+		if (!minDate) {
+			minDate = moment().subtract(1, 'days').format('YYYY-MM-DD') as string;
+		}
+		if (!maxDate) {
+			maxDate = moment().format('YYYY-MM-DD') as string;
+		}
+		if (!(isDate(minDate as string) && isDate(maxDate as string))) {
+			return res.status(400).json({ error: 'Invalid Date' });
+		}
+		const data = await db.query(
+			`SELECT * FROM state_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
+		);
+		cache.set('states', data[0], day);
+		res.status(200).send(data[0] as any);
+	},
+);
 
 // Get Data for a specific state by state code
-app.get('/states/code/:state_code', async (req: Request<{
-	state_code: string;
-}, any, any, QueryString.ParsedQs, Record<string, any>>, res:Response<any, Record<string, any>, number>) => {
-	let { min_date: minDate, max_date: maxDate } = req.query;
-	const stateCode = Number(req.params.state_code);
+app.get(
+	'/states/code/:state_code',
+	async (
+		req: Request<
+			{
+				state_code: string;
+			},
+			any,
+			any,
+			QueryString.ParsedQs,
+			Record<string, any>
+		>,
+		res: Response<any, Record<string, any>, number>,
+	) => {
+		let { min_date: minDate, max_date: maxDate } = req.query;
+		const stateCode = Number(req.params.state_code);
 
-	if (!minDate) {
-		minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
-	}
-	if (!maxDate) {
-		maxDate = moment().format('YYYY-MM-DD');
-	}
-	if (!(isDate(minDate as string) && isDate(maxDate as string))) {
-		return res.json({ error: 'Invalid Date' });
-	}
-	if (stateCode === NaN || stateCode < 1 || stateCode > 36) {
-		return res
-			.status(400)
-			.json({ error: 'Invalid State Code', state_code: stateCode });
-	}
-	const stateAbbr = (
-		Object.values(StateCodeMap).find((v:[string | string[], number]) => v[1] === stateCode) as any
-	)[0];
-	if (cache.has(`state_${stateAbbr}`)) {
-		return res.status(200).send(cache.get(`state_${stateAbbr}`));
-	}
-	try {
-		const [data] = await db.query(
-			`SELECT * FROM state_cases WHERE state_code=${stateCode} AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
-		);
-		cache.set(`state_${stateAbbr}`, [(data as any)[1]], day);
-		return res.status(200).send([(data as any)[1]]);
-	} catch (err) {
-		return res.status(400).send({ error: 'Invalid State Code' });
-	}
-});
+		if (!minDate) {
+			minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
+		}
+		if (!maxDate) {
+			maxDate = moment().format('YYYY-MM-DD');
+		}
+		if (!(isDate(minDate as string) && isDate(maxDate as string))) {
+			return res.json({ error: 'Invalid Date' });
+		}
+		if (stateCode === NaN || stateCode < 1 || stateCode > 36) {
+			return res
+				.status(400)
+				.json({ error: 'Invalid State Code', state_code: stateCode });
+		}
+		const stateAbbr = (
+			Object.values(StateCodeMap).find(
+				(v: [string | string[], number]) => v[1] === stateCode,
+			) as any
+		)[0];
+		if (cache.has(`state_${stateAbbr}`)) {
+			return res.status(200).send(cache.get(`state_${stateAbbr}`));
+		}
+		try {
+			const [data] = await db.query(
+				`SELECT * FROM state_cases WHERE state_code=${stateCode} AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
+			);
+			cache.set(`state_${stateAbbr}`, [(data as any)[1]], day);
+			return res.status(200).send([(data as any)[1]]);
+		} catch (err) {
+			return res.status(400).send({ error: 'Invalid State Code' });
+		}
+	},
+);
 
 // Get Data for a specific state by state abbr
-app.get('/states/abbr/:state_abbr', async (req: Request<{
-	state_abbr: string;
-}, any, any, QueryString.ParsedQs, Record<string, any>>, res:Response<any, Record<string, any>, number>) => {
-	let { min_date: minDate, max_date: maxDate } = req.query;
-	const stateAbbr: string = req.params.state_abbr;
-	if (!stateAbbr) {
-		res.status(400).json({ error: 'State Abbr Undefined' });
-	}
-	if (!minDate) {
-		minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
-	}
-	if (!maxDate) {
-		maxDate = moment().format('YYYY-MM-DD');
-	}
-	if (cache.has(`state_${stateAbbr}`)) {
-		console.log('Cache Hit');
-		return res.status(200).send(cache.get(`state_${stateAbbr}`));
-	}
-	if (!(isDate(minDate as string) && isDate(maxDate as string))) {
-		return res.json({ error: 'Invalid Date' });
-	}
-	const [data] = await db.query(
-		`SELECT * FROM state_cases WHERE state_abbr LIKE '%${stateAbbr}%' AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
-	);
-	cache.set(`state_${stateAbbr}`, [(data as any)[1]], day);
-	res.status(200).send([(data as any)[1]]);
-});
+app.get(
+	'/states/abbr/:state_abbr',
+	async (
+		req: Request<
+			{
+				state_abbr: string;
+			},
+			any,
+			any,
+			QueryString.ParsedQs,
+			Record<string, any>
+		>,
+		res: Response<any, Record<string, any>, number>,
+	) => {
+		let { min_date: minDate, max_date: maxDate } = req.query;
+		const stateAbbr: string = req.params.state_abbr;
+		if (!stateAbbr) {
+			res.status(400).json({ error: 'State Abbr Undefined' });
+		}
+		if (!minDate) {
+			minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
+		}
+		if (!maxDate) {
+			maxDate = moment().format('YYYY-MM-DD');
+		}
+		if (cache.has(`state_${stateAbbr}`)) {
+			console.log('Cache Hit');
+			return res.status(200).send(cache.get(`state_${stateAbbr}`));
+		}
+		if (!(isDate(minDate as string) && isDate(maxDate as string))) {
+			return res.json({ error: 'Invalid Date' });
+		}
+		const [data] = await db.query(
+			`SELECT * FROM state_cases WHERE state_abbr LIKE '%${stateAbbr}%' AND (date BETWEEN '${minDate}' AND '${maxDate}')`,
+		);
+		cache.set(`state_${stateAbbr}`, [(data as any)[1]], day);
+		res.status(200).send([(data as any)[1]]);
+	},
+);
 
 // Get Data for whole country
-app.get('/country', async (req:Request<{}, any, any, QueryString.ParsedQs, Record<string, any>>, res:Response<any, Record<string, any>, number>) => {
-	let { min_date: minDate, max_date: maxDate } = req.query;
+app.get(
+	'/country',
+	async (
+		req: Request<{}, any, any, QueryString.ParsedQs, Record<string, any>>,
+		res: Response<any, Record<string, any>, number>,
+	) => {
+		let { min_date: minDate, max_date: maxDate } = req.query;
 
-	if (!minDate) {
-		minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
-	}
-	if (!maxDate) {
-		maxDate = moment().format('YYYY-MM-DD');
-	}
-	if (cache.has('country')) {
-		return res.status(200).send(cache.get('country'));
-	}
-	if (!(isDate(minDate as string) && isDate(maxDate as string))) {
-		return res.json({ error: 'Invalid Date' });
-	}
-	const [data] = await db.query(
-		`SELECT * FROM country_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
-	);
-	cache.set('country', [(data as any)[0]], day);
-	res.status(200).send([(data as any)[0]]);
-});
+		if (!minDate) {
+			minDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
+		}
+		if (!maxDate) {
+			maxDate = moment().format('YYYY-MM-DD');
+		}
+		if (cache.has('country')) {
+			return res.status(200).send(cache.get('country'));
+		}
+		if (!(isDate(minDate as string) && isDate(maxDate as string))) {
+			return res.json({ error: 'Invalid Date' });
+		}
+		const [data] = await db.query(
+			`SELECT * FROM country_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
+		);
+		cache.set('country', [(data as any)[0]], day);
+		res.status(200).send([(data as any)[0]]);
+	},
+);
 
 // Port to listen on
 const PORT = process.env.PORT || 3001;
