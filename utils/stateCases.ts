@@ -39,11 +39,13 @@ export default async (db: Pool, cache: NodeCache) => {
 			...stateInfo,
 			state_name: stateInfo.state_name.replace(/[*,/(/)]/g, ''),
 		};
-		let stateAbbr: string | string[] | undefined = (
+		let stateAbbrObj: any = (
 			StateCodeMap as {
 				[key: string]: [string | string[], number];
 			}
-		)[stateInfo.state_name][0];
+		)[stateInfo.state_name];
+		if (!stateAbbrObj[0]) return;
+		let stateAbbr = stateAbbrObj[0];
 		if (typeof stateAbbr === 'undefined') {
 			stateAbbr = 'NA';
 		} else {
