@@ -44,7 +44,7 @@ export default async (db: Pool, cache: NodeCache) => {
 				[key: string]: [string | string[], number];
 			}
 		)[stateInfo.state_name];
-		if (!stateAbbrObj[0]) return;
+		if (!stateAbbrObj) return;
 		let stateAbbr = stateAbbrObj[0];
 		if (typeof stateAbbr === 'undefined') {
 			stateAbbr = 'NA';
