@@ -82,7 +82,7 @@ app.get(
 			return res.status(400).json({ error: 'Invalid Date' });
 		}
 		if (cache.has(`states-${minDate}-${maxDate}`)) {
-			return res.status(200).send(cache.get('states'));
+			return res.status(200).send(cache.get(`states-${minDate}-${maxDate}`));
 		}
 		const data = await db.query(
 			`SELECT * FROM state_cases WHERE date BETWEEN '${minDate}' AND '${maxDate}'`,
@@ -132,7 +132,9 @@ app.get(
 		}
 		const stateAbbr = stateAbbrCheck[0] as string;
 		if (cache.has(`state_${stateAbbr}-${minDate}-${maxDate}`)) {
-			return res.status(200).send(cache.get(`state_${stateAbbr}`));
+			return res
+				.status(200)
+				.send(cache.get(`state_${stateAbbr}-${minDate}-${maxDate}`));
 		}
 		try {
 			const [data] = await db.query(
@@ -174,8 +176,9 @@ app.get(
 			maxDate = moment().format('YYYY-MM-DD');
 		}
 		if (cache.has(`state_${stateAbbr}-${minDate}-${maxDate}`)) {
-			console.log('Cache Hit');
-			return res.status(200).send(cache.get(`state_${stateAbbr}`));
+			return res
+				.status(200)
+				.send(cache.get(`state_${stateAbbr}-${minDate}-${maxDate}`));
 		}
 		if (!(isDate(minDate as string) && isDate(maxDate as string))) {
 			return res.json({ error: 'Invalid Date' });
@@ -204,7 +207,7 @@ app.get(
 			maxDate = moment().format('YYYY-MM-DD');
 		}
 		if (cache.has(`country-${minDate}-${maxDate}`)) {
-			return res.status(200).send(cache.get('country'));
+			return res.status(200).send(cache.get(`country-${minDate}-${maxDate}`));
 		}
 		if (!(isDate(minDate as string) && isDate(maxDate as string))) {
 			return res.json({ error: 'Invalid Date' });
